@@ -1,0 +1,10 @@
+{
+  "name": "code-reviewer-agent",
+  "description": "Read-only code-review subagent that loads the comprehensive-code-review methodology and returns a severity-ranked report. Requires the code-review-skill plugin.",
+  "version": "1.0.0",
+  "author": {
+    "name": "steve.joo"
+  },
+  "keywords": ["code-review", "agent", "subagent", "quality"],
+  "dependencies": ["code-review-skill"]
+}

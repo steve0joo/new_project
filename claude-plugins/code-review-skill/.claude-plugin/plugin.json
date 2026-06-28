@@ -1,0 +1,9 @@
+{
+  "name": "code-review-skill",
+  "description": "Comprehensive code-review methodology as a skill: correctness/bugs, security, and simplification lenses producing a severity-ranked (Critical/High/Medium/Low) report with file:line references and concrete fixes.",
+  "version": "1.0.0",
+  "author": {
+    "name": "steve.joo"
+  },
+  "keywords": ["code-review", "skill", "quality", "security"]
+}

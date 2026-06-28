@@ -1,0 +1,24 @@
+{
+  "name": "quickpoll-quality-tools",
+  "owner": {
+    "name": "steve.joo"
+  },
+  "description": "QuickPoll 저장소의 코드 품질 도구 모음 — 코드리뷰 스킬·서브에이전트·pre-commit 훅을 각각 독립 플러그인으로 패키징했습니다.",
+  "plugins": [
+    {
+      "name": "code-review-skill",
+      "source": "./code-review-skill",
+      "description": "코드리뷰 방법론 스킬: correctness/security/simplification 3개 렌즈 + 심각도(Critical/High/Medium/Low) 리포트 포맷."
+    },
+    {
+      "name": "code-reviewer-agent",
+      "source": "./code-reviewer-agent",
+      "description": "code-review-skill 방법론을 따라 심각도별 리포트를 내는 읽기 전용 코드리뷰 서브에이전트. (code-review-skill 플러그인 필요)"
+    },
+    {
+      "name": "precommit-checks",
+      "source": "./precommit-checks",
+      "description": "git commit 시 prettier 포맷 + 인라인 JS 문법 검사를 돌려 실패하면 커밋을 막는 PreToolUse(Bash) 훅."
+    }
+  ]
+}

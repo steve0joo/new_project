@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/scripts/pre-commit-checks.sh\"",
+            "timeout": 120,
+            "statusMessage": "pre-commit 검사 (lint + 문법)…"
+          }
+        ]
+      }
+    ]
+  }
+}

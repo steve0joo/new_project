@@ -1,0 +1,9 @@
+{
+  "name": "precommit-checks",
+  "description": "PreToolUse(Bash) hook that intercepts `git commit` and runs this project's checks — prettier format gate + inline-<script> JS syntax check — blocking the commit (exit 2) if any fail.",
+  "version": "1.0.0",
+  "author": {
+    "name": "steve.joo"
+  },
+  "keywords": ["hook", "pre-commit", "prettier", "lint"]
+}

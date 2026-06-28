@@ -387,13 +387,12 @@
           btn.disabled = true;
           btn.textContent = "만드는 중…";
           try {
-            const { data, error } = await sb
+            const id = crypto.randomUUID();
+            const { error } = await sb
               .from("polls")
-              .insert({ question, options, counts: options.map(() => 0) })
-              .select()
-              .single();
+              .insert({ id, question, options, counts: options.map(() => 0) });
             if (error) throw error;
-            renderShare(data.id);
+            renderShare(id);
           } catch (ex) {
             err.textContent = "오류: " + (ex.message || ex);
             btn.disabled = false;
@@ -434,9 +433,7 @@
         let poll;
         try {
           const { data, error } = await sb
-            .from("polls")
-            .select("*")
-            .eq("id", pollId)
+            .rpc("get_poll", { p_id: pollId })
             .single();
           if (error) throw error;
           poll = data;
@@ -495,9 +492,7 @@
             localStorage.setItem("voted_" + pollId, String(selected));
             // 최신 집계 다시 불러오기
             const { data } = await sb
-              .from("polls")
-              .select("*")
-              .eq("id", pollId)
+              .rpc("get_poll", { p_id: pollId })
               .single();
             renderResults(data || poll, { justVoted: selected });
           } catch (ex) {
@@ -551,11 +546,7 @@
         <button class="ghost" id="newPoll">새 투표 만들기</button>`;
 
         document.getElementById("refresh").onclick = async () => {
-          const { data } = await sb
-            .from("polls")
-            .select("*")
-            .eq("id", poll.id)
-            .single();
+          const { data } = await sb.rpc("get_poll", { p_id: poll.id }).single();
           if (data) renderResults(data, { already, justVoted });
         };
         document.getElementById("newPoll").onclick = () => {
