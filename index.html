@@ -1,0 +1,569 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>퀵폴 · 빠른 투표</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      :root {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --muted: #94a3b8;
+        --text: #f1f5f9;
+        --accent: #6366f1;
+        --accent-hover: #4f46e5;
+        --bar: #6366f1;
+        --border: #334155;
+        --danger: #f87171;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 24px 16px 64px;
+      }
+      .card {
+        width: 100%;
+        max-width: 480px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 28px 24px;
+        margin-top: 32px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35);
+      }
+      h1 {
+        font-size: 1.4rem;
+        margin: 0 0 4px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+      .brand .dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .brand span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 0 0 16px;
+        line-height: 1.4;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #0f172a;
+        color: var(--text);
+        font-size: 1rem;
+        margin-bottom: 12px;
+      }
+      input[type="text"]:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
+      .option-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .option-row input {
+        flex: 1;
+      }
+      .icon-btn {
+        flex: 0 0 auto;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--muted);
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-bottom: 12px;
+      }
+      .icon-btn:hover {
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+      button.primary {
+        width: 100%;
+        padding: 14px;
+        border-radius: 10px;
+        border: none;
+        background: var(--accent);
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+      }
+      button.primary:hover {
+        background: var(--accent-hover);
+      }
+      button.primary:disabled {
+        opacity: 0.5;
+        cursor: default;
+      }
+      button.ghost {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: transparent;
+        color: var(--text);
+        font-size: 0.95rem;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+      button.ghost:hover {
+        border-color: var(--accent);
+      }
+      .link-add {
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        padding: 4px 0;
+        font-size: 0.9rem;
+        margin-bottom: 16px;
+      }
+      .choice {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+      }
+      .choice:hover {
+        border-color: var(--accent);
+      }
+      .choice.selected {
+        border-color: var(--accent);
+        background: rgba(99, 102, 241, 0.12);
+      }
+      .choice input {
+        accent-color: var(--accent);
+        width: 18px;
+        height: 18px;
+      }
+      .choice span {
+        font-size: 1rem;
+      }
+      .result {
+        margin-bottom: 14px;
+      }
+      .result .row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.95rem;
+        margin-bottom: 6px;
+      }
+      .result .row .pct {
+        color: var(--muted);
+      }
+      .result.win .label {
+        font-weight: 700;
+      }
+      .track {
+        height: 10px;
+        background: #0f172a;
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      .fill {
+        height: 100%;
+        background: var(--bar);
+        border-radius: 6px;
+        transition: width 0.4s ease;
+      }
+      .total {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-top: 18px;
+        text-align: center;
+      }
+      .share-box {
+        display: flex;
+        gap: 8px;
+        margin: 8px 0 4px;
+      }
+      .share-box input {
+        margin-bottom: 0;
+        font-size: 0.85rem;
+      }
+      .copy-btn {
+        flex: 0 0 auto;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: 1px solid var(--accent);
+        background: var(--accent);
+        color: white;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .copy-btn:hover {
+        background: var(--accent-hover);
+      }
+      .note {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin: 12px 0;
+        line-height: 1.5;
+      }
+      .error {
+        color: var(--danger);
+        font-size: 0.9rem;
+        margin-top: 12px;
+      }
+      .badge {
+        display: inline-block;
+        font-size: 0.75rem;
+        color: var(--accent);
+        background: rgba(99, 102, 241, 0.15);
+        padding: 4px 10px;
+        border-radius: 999px;
+        margin-bottom: 14px;
+      }
+      code {
+        background: #0f172a;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.85em;
+      }
+      a {
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="brand">
+        <div class="dot"></div>
+        <h1 style="font-size: 1.1rem; margin: 0">퀵폴</h1>
+        <span>· 링크로 공유하는 빠른 투표</span>
+      </div>
+      <div id="app"></div>
+    </div>
+
+    <script>
+      // ===== 설정: Supabase 프로젝트 값으로 교체하세요 (anon key는 공개되어도 안전) =====
+      const SUPABASE_URL = "https://piygejajygexogloxbrz.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "sb_publishable_RxioXq7-qLB3AQ4aaDnL_w_0zWgYyHn";
+      // ============================================================================
+
+      const app = document.getElementById("app");
+      const esc = (s) =>
+        String(s).replace(
+          /[&<>"']/g,
+          (c) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#39;",
+            })[c],
+        );
+
+      let sb = null;
+      function configured() {
+        return (
+          SUPABASE_URL &&
+          SUPABASE_ANON_KEY &&
+          !SUPABASE_URL.startsWith("YOUR_") &&
+          !SUPABASE_ANON_KEY.startsWith("YOUR_")
+        );
+      }
+
+      // ---------- 라우팅 ----------
+      function init() {
+        if (!configured()) return renderSetup();
+        sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const pollId = new URLSearchParams(location.search).get("poll");
+        if (pollId) renderVote(pollId);
+        else renderCreate();
+      }
+
+      // ---------- 설정 안내 ----------
+      function renderSetup() {
+        app.innerHTML = `
+        <span class="badge">설정 필요</span>
+        <h2>Supabase 연결을 먼저 해주세요</h2>
+        <p class="note">
+          <code>index.html</code> 상단의 <code>SUPABASE_URL</code> 과
+          <code>SUPABASE_ANON_KEY</code> 를 본인 프로젝트 값으로 교체하세요.<br><br>
+          Supabase 대시보드 → <b>Settings → API</b> 에서 복사할 수 있어요.
+          테이블/함수 생성은 <code>supabase-setup.sql</code> 을 SQL Editor에 붙여넣어 실행하세요.
+        </p>`;
+      }
+
+      // ---------- 만들기 화면 ----------
+      function renderCreate() {
+        app.innerHTML = `
+        <h2>새 투표 만들기</h2>
+        <label>질문</label>
+        <input type="text" id="q" placeholder="예: 점심 뭐 먹을까?" maxlength="140" />
+        <label>선택지</label>
+        <div id="options"></div>
+        <button class="link-add" id="addOpt">＋ 선택지 추가</button>
+        <button class="primary" id="create">투표 만들기</button>
+        <div class="error" id="err"></div>`;
+
+        const optionsEl = document.getElementById("options");
+        const MAX = 6,
+          MIN = 2;
+
+        function addOption(value = "") {
+          if (optionsEl.children.length >= MAX) return;
+          const row = document.createElement("div");
+          row.className = "option-row";
+          row.innerHTML = `
+          <input type="text" class="opt" placeholder="선택지" maxlength="80" />
+          <button class="icon-btn remove" title="삭제">×</button>`;
+          row.querySelector(".opt").value = value;
+          row.querySelector(".remove").onclick = () => {
+            if (optionsEl.children.length > MIN) row.remove();
+            updateAddBtn();
+          };
+          optionsEl.appendChild(row);
+          updateAddBtn();
+        }
+        function updateAddBtn() {
+          document.getElementById("addOpt").style.display =
+            optionsEl.children.length >= MAX ? "none" : "inline";
+        }
+
+        addOption();
+        addOption();
+        document.getElementById("addOpt").onclick = () => addOption();
+
+        document.getElementById("create").onclick = async (e) => {
+          const btn = e.target;
+          const err = document.getElementById("err");
+          err.textContent = "";
+          const question = document.getElementById("q").value.trim();
+          const options = [...document.querySelectorAll(".opt")]
+            .map((i) => i.value.trim())
+            .filter(Boolean);
+
+          if (!question) return (err.textContent = "질문을 입력해주세요.");
+          if (options.length < MIN)
+            return (err.textContent = "선택지를 2개 이상 입력해주세요.");
+
+          btn.disabled = true;
+          btn.textContent = "만드는 중…";
+          try {
+            const { data, error } = await sb
+              .from("polls")
+              .insert({ question, options, counts: options.map(() => 0) })
+              .select()
+              .single();
+            if (error) throw error;
+            renderShare(data.id);
+          } catch (ex) {
+            err.textContent = "오류: " + (ex.message || ex);
+            btn.disabled = false;
+            btn.textContent = "투표 만들기";
+          }
+        };
+      }
+
+      // ---------- 공유 화면 ----------
+      function renderShare(pollId) {
+        const url = `${location.origin}${location.pathname}?poll=${pollId}`;
+        app.innerHTML = `
+        <span class="badge">완성!</span>
+        <h2>투표가 만들어졌어요 🎉</h2>
+        <label>이 링크를 공유하세요</label>
+        <div class="share-box">
+          <input type="text" id="shareUrl" readonly />
+          <button class="copy-btn" id="copy">복사</button>
+        </div>
+        <button class="primary" id="goVote">투표하러 가기</button>`;
+        document.getElementById("shareUrl").value = url;
+        document.getElementById("copy").onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(url);
+          } catch (_) {}
+          const b = document.getElementById("copy");
+          b.textContent = "복사됨!";
+          setTimeout(() => (b.textContent = "복사"), 1500);
+        };
+        document.getElementById("goVote").onclick = () => {
+          location.href = url;
+        };
+      }
+
+      // ---------- 투표 화면 ----------
+      async function renderVote(pollId) {
+        app.innerHTML = `<p class="note">불러오는 중…</p>`;
+        let poll;
+        try {
+          const { data, error } = await sb
+            .from("polls")
+            .select("*")
+            .eq("id", pollId)
+            .single();
+          if (error) throw error;
+          poll = data;
+        } catch (ex) {
+          app.innerHTML = `<h2>투표를 찾을 수 없어요</h2>
+          <p class="note">링크가 올바른지 확인해주세요.<br>오류: ${esc(ex.message || ex)}</p>
+          <button class="ghost" onclick="location.href=location.pathname">새 투표 만들기</button>`;
+          return;
+        }
+
+        // 이미 투표했으면 결과로
+        if (localStorage.getItem("voted_" + pollId) !== null) {
+          return renderResults(poll, { already: true });
+        }
+
+        let selected = null;
+        app.innerHTML = `
+        <h2>${esc(poll.question)}</h2>
+        <div id="choices"></div>
+        <button class="primary" id="vote" disabled>투표하기</button>
+        <button class="ghost" id="seeResults">결과만 보기</button>
+        <div class="error" id="err"></div>`;
+
+        const choicesEl = document.getElementById("choices");
+        poll.options.forEach((opt, idx) => {
+          const el = document.createElement("label");
+          el.className = "choice";
+          el.innerHTML = `<input type="radio" name="opt" value="${idx}"><span>${esc(opt)}</span>`;
+          el.querySelector("input").onchange = () => {
+            selected = idx;
+            [...choicesEl.children].forEach((c) =>
+              c.classList.remove("selected"),
+            );
+            el.classList.add("selected");
+            document.getElementById("vote").disabled = false;
+          };
+          choicesEl.appendChild(el);
+        });
+
+        document.getElementById("seeResults").onclick = () =>
+          renderResults(poll, {});
+
+        document.getElementById("vote").onclick = async (e) => {
+          if (selected === null) return;
+          const btn = e.target;
+          const err = document.getElementById("err");
+          err.textContent = "";
+          btn.disabled = true;
+          btn.textContent = "처리 중…";
+          try {
+            const { error } = await sb.rpc("vote", {
+              p_id: pollId,
+              opt: selected,
+            });
+            if (error) throw error;
+            localStorage.setItem("voted_" + pollId, String(selected));
+            // 최신 집계 다시 불러오기
+            const { data } = await sb
+              .from("polls")
+              .select("*")
+              .eq("id", pollId)
+              .single();
+            renderResults(data || poll, { justVoted: selected });
+          } catch (ex) {
+            err.textContent = "오류: " + (ex.message || ex);
+            btn.disabled = false;
+            btn.textContent = "투표하기";
+          }
+        };
+      }
+
+      // ---------- 결과 화면 ----------
+      function renderResults(poll, { already, justVoted } = {}) {
+        const counts = (poll.counts || []).map((n) => n || 0);
+        const total = counts.reduce((a, b) => a + b, 0);
+        const max = Math.max(0, ...counts);
+        const myVote =
+          justVoted ??
+          (localStorage.getItem("voted_" + poll.id) !== null
+            ? Number(localStorage.getItem("voted_" + poll.id))
+            : null);
+
+        const rows = poll.options
+          .map((opt, idx) => {
+            const c = counts[idx] || 0;
+            const pct = total ? Math.round((c / total) * 100) : 0;
+            const win = c === max && c > 0;
+            const mine = myVote === idx ? " ✓" : "";
+            return `
+          <div class="result ${win ? "win" : ""}">
+            <div class="row">
+              <span class="label">${esc(opt)}${mine}</span>
+              <span class="pct">${c}표 · ${pct}%</span>
+            </div>
+            <div class="track"><div class="fill" style="width:${pct}%"></div></div>
+          </div>`;
+          })
+          .join("");
+
+        const banner = already
+          ? `<span class="badge">이미 투표했어요</span>`
+          : justVoted != null
+            ? `<span class="badge">투표 완료!</span>`
+            : "";
+
+        app.innerHTML = `
+        ${banner}
+        <h2>${esc(poll.question)}</h2>
+        ${rows}
+        <div class="total">총 ${total}표</div>
+        <button class="ghost" id="refresh">결과 새로고침</button>
+        <button class="ghost" id="newPoll">새 투표 만들기</button>`;
+
+        document.getElementById("refresh").onclick = async () => {
+          const { data } = await sb
+            .from("polls")
+            .select("*")
+            .eq("id", poll.id)
+            .single();
+          if (data) renderResults(data, { already, justVoted });
+        };
+        document.getElementById("newPoll").onclick = () => {
+          location.href = location.pathname;
+        };
+      }
+
+      init();
+    </script>
+  </body>
+</html>
