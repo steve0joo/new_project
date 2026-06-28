@@ -1,7 +1,8 @@
 -- 퀵폴 MVP — Supabase SQL Editor에 그대로 붙여넣고 RUN 하세요.
 
 -- 1) 테이블: 질문 + 선택지 라벨 배열 + 표수 배열(병렬)
-create table polls (
+--    if not exists 로 재실행해도 안전하게 (이미 있으면 건너뜀)
+create table if not exists polls (
   id uuid primary key default gen_random_uuid(),
   question text not null,
   options text[] not null,
@@ -12,6 +13,8 @@ create table polls (
 -- 2) RLS 켜고 만들기 정책만 부여 (조회는 get_poll RPC로만, 직접 UPDATE/DELETE는 불가)
 alter table polls enable row level security;
 
+-- create policy 는 if not exists 를 지원하지 않으므로, 재실행 대비해 먼저 드롭하고 다시 생성
+drop policy if exists "anyone can create" on polls;
 create policy "anyone can create" on polls for insert with check (
   length(question) between 1 and 140
   and cardinality(options) between 2 and 6
