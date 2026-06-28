@@ -2,7 +2,7 @@
 name: code-reviewer
 description: >-
   Use this agent to review code for quality before merging or committing. It performs a
-  comprehensive review (correctness/bugs, security, simplification/readability) and returns a
+  comprehensive review (correctness/bugs, security, simplification/readabqkility) and returns a
   severity-ranked report with file:line references and concrete fixes. Invoke it when the user
   asks to review a diff or PR, audit a file, check changes for bugs, or verify code is safe to
   ship. Prefer this agent over an ad-hoc review so every review follows the same methodology.
